@@ -12,3 +12,4 @@ import { Plat } from '../entities/plat.entity';
   exports: [PlatsService],
 })
 export class PlatsModule {}
+//

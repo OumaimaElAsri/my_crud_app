@@ -56,7 +56,8 @@ bash
 npm run test
 
 👥 Auteurs
-Projet réalisé dans le cadre du module Développement et services Cloud.
+
+Projet réalisé dans le cadre du module Développement et services Cloud
 
 Équipe : 
 PAPINAUD Laurent

@@ -1,8 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+HEAD
 import { PlatsService } from './plats.service';
 import { Plat } from '../entities/plat.entity';
 import { NotFoundException } from '@nestjs/common';
+
+// import { Repository } from 'typeorm';
+import { PlatsService } from './plats.service';
+import { Plat } from '../entities/plat.entity';
+4db047eb5cf0d077ab5ad3457bc7c2825184256c
 
 describe('PlatsService', () => {
   let service: PlatsService;
@@ -10,8 +16,15 @@ describe('PlatsService', () => {
   const mockRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
+HEAD
     create: jest.fn(),
     save: jest.fn(),
+
+    save: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+4db047eb5cf0d077ab5ad3457bc7c2825184256c
     remove: jest.fn(),
   };
 
@@ -32,8 +45,11 @@ describe('PlatsService', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-
+  HEAD
   it('devrait être défini', () => {
+
+  it('should be defined', () => {
+    4db047eb5cf0d077ab5ad3457bc7c2825184256c
     expect(service).toBeDefined();
   });
 

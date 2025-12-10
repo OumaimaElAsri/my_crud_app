@@ -52,6 +52,7 @@ export class TablesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     this.tablesService.remove(Number(id));
-    return { message: `Table ##{id} supprimée` };
+    // return { message: `Table ##{id} supprimée` };
+    return { message: `Table #${id} supprimée` };
   }
 }

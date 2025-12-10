@@ -10,15 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
-
-// Interface locale
-interface Client {
-  id: number;
-  nom: string;
-  allergies: string[];
-  majeur: boolean;
-  vegetarien: boolean;
-}
+import { Client } from '../entities/client.entity';
 
 @ApiTags('clients')
 @Controller('clients')
@@ -28,7 +20,7 @@ export class ClientsController {
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les clients' })
   @ApiResponse({ status: 200, description: 'Liste des clients retournée avec succès' })
-  findAll(): Client[] {
+  findAll(): Promise<Client[]> {
     return this.clientsService.findAll();
   }
 
@@ -37,7 +29,7 @@ export class ClientsController {
   @ApiParam({ name: 'id', description: 'ID du client', example: 1 })
   @ApiResponse({ status: 200, description: 'Client trouvé' })
   @ApiResponse({ status: 404, description: 'Client non trouvé' })
-  findOne(@Param('id') id: string): Client {
+  findOne(@Param('id') id: string): Promise<Client> {
     return this.clientsService.findOne(Number(id));
   }
 
@@ -66,7 +58,7 @@ export class ClientsController {
       majeur: boolean;
       vegetarien: boolean;
     },
-  ): Client {
+  ): Promise<Client> {
     return this.clientsService.create(
       body.nom,
       body.allergies,
@@ -101,7 +93,7 @@ export class ClientsController {
       majeur?: boolean;
       vegetarien?: boolean;
     },
-  ): Client {
+  ): Promise<Client> {
     return this.clientsService.update(
       Number(id),
       body.nom,
@@ -116,8 +108,8 @@ export class ClientsController {
   @ApiParam({ name: 'id', description: 'ID du client à supprimer', example: 1 })
   @ApiResponse({ status: 200, description: 'Client supprimé avec succès' })
   @ApiResponse({ status: 404, description: 'Client non trouvé' })
-  remove(@Param('id') id: string) {
-    this.clientsService.remove(Number(id));
+  async remove(@Param('id') id: string) {
+    await this.clientsService.remove(Number(id));
     return { message: `Client #${id} supprimé` };
   }
 }

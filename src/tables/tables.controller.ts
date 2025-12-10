@@ -9,20 +9,19 @@ import {
   Body,
 } from '@nestjs/common';
 import { TablesService } from './tables.service';
-import { StatutTable } from './table.types';
-import type { Table } from './table.types';
+import { Table, StatutTable } from '../entities/table.entity';
 
 @Controller('tables')
 export class TablesController {
   constructor(private readonly tablesService: TablesService) {}
 
   @Get()
-  findAll(): Table[] {
+  findAll(): Promise<Table[]> {
     return this.tablesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Table {
+  findOne(@Param('id') id: string): Promise<Table> {
     return this.tablesService.findOne(Number(id));
   }
 
@@ -33,7 +32,7 @@ export class TablesController {
       capacite: number;
       statut?: StatutTable;
     },
-  ): Table {
+  ): Promise<Table> {
     return this.tablesService.create(body.capacite, body.statut);
   }
 
@@ -45,14 +44,13 @@ export class TablesController {
       capacite?: number;
       statut?: StatutTable;
     },
-  ): Table {
+  ): Promise<Table> {
     return this.tablesService.update(Number(id), body.capacite, body.statut);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    this.tablesService.remove(Number(id));
-    // return { message: `Table ##{id} supprimée` };
+  async remove(@Param('id') id: string) {
+    await this.tablesService.remove(Number(id));
     return { message: `Table #${id} supprimée` };
   }
 }

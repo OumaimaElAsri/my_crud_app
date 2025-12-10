@@ -1,59 +1,50 @@
 // src/tables/tables.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StatutTable, Table } from './table.types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Table, StatutTable } from '../entities/table.entity';
 
 @Injectable()
 export class TablesService {
-  // Hard coded data (temporary)
-  private tables: Table[] = [
-    {
-      id: 1,
-      capacite: 4,
-      statut: StatutTable.LIBRE,
-    },
-    {
-      id: 2,
-      capacite: 2,
-      statut: StatutTable.OCCUPEE,
-    },
-    {
-      id: 3,
-      capacite: 6,
-      statut: StatutTable.RESERVEE,
-    },
-  ];
-  private nextId = 4;
+  constructor(
+    @InjectRepository(Table)
+    private readonly tableRepository: Repository<Table>,
+  ) {}
 
-  findAll(): Table[] {
-    return this.tables;
+  findAll(): Promise<Table[]> {
+    return this.tableRepository.find();
   }
 
-  findOne(id: number): Table {
-    const table = this.tables.find((t) => t.id === id);
+  async findOne(id: number): Promise<Table> {
+    const table = await this.tableRepository.findOne({ where: { id } });
     if (!table) throw new NotFoundException(`Table #${id} non trouvée`);
     return table;
   }
 
-  create(capacite: number, statut: StatutTable = StatutTable.LIBRE): Table {
-    const nouvelleTable: Table = {
-      id: this.nextId++,
+  async create(
+    capacite: number,
+    statut: StatutTable = StatutTable.LIBRE,
+  ): Promise<Table> {
+    const nouvelleTable = this.tableRepository.create({
       capacite,
       statut,
-    };
-    this.tables.push(nouvelleTable);
-    return nouvelleTable;
+    });
+    return this.tableRepository.save(nouvelleTable);
   }
 
-  update(id: number, capacite?: number, statut?: StatutTable): Table {
-    const table = this.findOne(id);
+  async update(
+    id: number,
+    capacite?: number,
+    statut?: StatutTable,
+  ): Promise<Table> {
+    const table = await this.findOne(id);
     if (capacite !== undefined) table.capacite = capacite;
     if (statut !== undefined) table.statut = statut;
-    return table;
+    return this.tableRepository.save(table);
   }
 
-  remove(id: number): void {
-    const index = this.tables.findIndex((t) => t.id === id);
-    if (index === -1) throw new NotFoundException(`Table #${id} non trouvée`);
-    this.tables.splice(index, 1);
+  async remove(id: number): Promise<void> {
+    const table = await this.findOne(id);
+    await this.tableRepository.remove(table);
   }
 }

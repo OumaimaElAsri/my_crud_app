@@ -1,33 +1,84 @@
 # 🍽️ Application CRUD Restaurant
 
-Application de gestion de restaurant développée avec NestJS. Cette application permet de gérer les clients, plats, tables, réservations et commandes avec des données en mémoire (stateless).
+Application de gestion de restaurant développée avec NestJS et PostgreSQL. Cette application permet de gérer les clients, plats, tables, réservations et commandes.
 
 ## 📋 Prérequis
 
 Avant d'installer l'application, assurez-vous d'avoir installé :
 
-- **Node.js** (version 20 ou supérieure) - [Télécharger Node.js](https://nodejs.org/)
-- **npm** (généralement inclus avec Node.js)
-- **Docker** (pour la containerisation) - [Télécharger Docker](https://www.docker.com/get-started)
+- **Node.js** (version 18 ou supérieure) - [Télécharger Node.js](https://nodejs.org/)
+- **PostgreSQL** (version 12 ou supérieure) - [Télécharger PostgreSQL](https://www.postgresql.org/download/)
+- **npm** (généralement inclus avec Node.js) ou **yarn**
 
 ## 🚀 Installation
 
-### Étape 1 : Cloner le projet
-```bash
-git clone <url-du-repo>
-cd my_crud_app
-```
+### Étape 1 : Cloner le projet (si nécessaire)
+
+Si vous avez cloné le projet depuis un dépôt Git, passez directement à l'étape 2.
 
 ### Étape 2 : Installer les dépendances Node.js
+
+Ouvrez un terminal dans le dossier du projet et exécutez :
+
 ```bash
 npm install
 ```
 
 Cette commande installera toutes les dépendances nécessaires listées dans `package.json`.
 
-## 🔧 Lancement de l'application
+### Étape 3 : Installer et configurer PostgreSQL
 
-### Option A : En local (développement)
+#### Option A : Installation locale de PostgreSQL
+
+1. **Téléchargez et installez PostgreSQL** depuis [postgresql.org](https://www.postgresql.org/download/)
+2. **Notez le mot de passe** que vous définissez pour l'utilisateur `postgres` lors de l'installation
+3. **Créez la base de données** :
+   - Ouvrez pgAdmin ou connectez-vous via psql :
+   ```bash
+   psql -U postgres
+   ```
+   - Créez la base de données :
+   ```sql
+   CREATE DATABASE restaurant;
+   ```
+   - Quittez psql :
+   ```sql
+   \q
+   ```
+
+#### Option B : Utiliser Docker (recommandé pour le développement)
+
+Si vous avez Docker installé, vous pouvez lancer PostgreSQL avec :
+
+```bash
+docker run --name postgres-restaurant -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=restaurant -p 5432:5432 -d postgres
+```
+
+### Étape 4 : Configurer les variables d'environnement
+
+**💡 Conseil :** Un fichier `.env.example` est fourni comme modèle. Copiez-le :
+```bash
+cp .env.example .env
+```
+
+Puis modifiez les valeurs selon votre configuration.
+
+Créez un fichier `.env` à la racine du projet avec le contenu suivant :
+```env
+# Configuration de la base de données PostgreSQL
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME= #votre nom d'administrateur
+DB_PASSWORD= #votre mot de passe d'administrateur
+DB_NAME=restaurant
+
+# Environnement
+NODE_ENV=development
+```
+
+**⚠️ Important :** Modifiez `DB_PASSWORD` avec le mot de passe PostgreSQL que vous avez configuré à l'étape 3.
+
+### Étape 5 : Lancer l'application
 
 #### Mode développement (avec rechargement automatique)
 ```bash
@@ -39,69 +90,21 @@ L'application sera accessible sur `http://localhost:3000`
 #### Mode production
 
 D'abord, compilez l'application :
+
 ```bash
 npm run build
 ```
 
 Puis lancez-la :
+
 ```bash
 npm run start:prod
 ```
 
-### Option B : Avec Docker (recommandé)
-
-#### 1. Construire l'image Docker
-```bash
-docker build -t my-crud-app:latest .
-```
-
-#### 2. Lancer le conteneur
-```bash
-docker run -d -p 3000:3000 --name my-crud-app my-crud-app:latest
-```
-
-#### 3. Vérifier que le conteneur tourne
-```bash
-docker ps
-```
-
-#### 4. Tester l'application
-```bash
-curl http://localhost:3000/health
-```
-
-Vous devriez voir :
-```json
-{
-  "status": "ok",
-  "timestamp": "2025-12-30T...",
-  "service": "restaurant-api"
-}
-```
-
-#### Commandes Docker utiles
-```bash
-# Voir les logs du conteneur
-docker logs my-crud-app
-
-# Arrêter le conteneur
-docker stop my-crud-app
-
-# Redémarrer le conteneur
-docker start my-crud-app
-
-# Supprimer le conteneur
-docker rm my-crud-app
-
-# Supprimer l'image
-docker rmi my-crud-app:latest
-```
-
-## 🌿 Workflow Git et Collaboration
-
+# 🌿 Workflow Git et Collaboration
 - **main** - Branche principale stable
 - Créez une branche pour chaque fonctionnalité : `git checkout -b feature-nom`
-- Faites régulièrement des commits avec une description explicite
+- Faites régulièrement des commits avec une description explicite SVP
 - Faites des pull requests pour merger dans main
 
 ## 📚 Structure de l'application
@@ -114,14 +117,16 @@ L'application est organisée en modules NestJS :
 - **Réservations** (`/reservations`) - Gestion des réservations
 - **Commandes** (`/commandes`) - Gestion des commandes
 
-⚠️ **Note importante** : L'application utilise des **données en mémoire**. Toutes les données sont réinitialisées à chaque redémarrage de l'application.
+### Étape 6 : Initialiser la base avec des données de test (optionnel)
+
+Pour peupler la base de données avec des données d'exemple :
+```bash
+npm run seed
+```
+
+Cette commande créera des clients, plats, tables, etc. de démonstration.
 
 ## 🔌 Endpoints de l'API
-
-### Health Check
-
-- `GET /health` - Vérification de l'état de l'application
-- `GET /` - Informations générales sur l'application
 
 ### Clients
 
@@ -166,6 +171,7 @@ L'application est organisée en modules NestJS :
 ## 📝 Exemple d'utilisation
 
 ### Créer un client
+
 ```bash
 POST http://localhost:3000/clients
 Content-Type: application/json
@@ -179,6 +185,7 @@ Content-Type: application/json
 ```
 
 ### Créer un plat
+
 ```bash
 POST http://localhost:3000/plats
 Content-Type: application/json
@@ -193,13 +200,14 @@ Content-Type: application/json
 ```
 
 ### Créer une table
+
 ```bash
 POST http://localhost:3000/tables
 Content-Type: application/json
 
 {
   "capacite": 4,
-  "statut": "LIBRE"
+  "statut": "libre"
 }
 ```
 
@@ -216,7 +224,7 @@ Content-Type: application/json
 
 ## 🧪 Tests
 
-L'application inclut des tests unitaires pour certains services.
+L'application inclut des tests unitaires pour tous les services.
 
 ### Lancer les tests
 ```bash
@@ -233,56 +241,44 @@ npm run test:cov
 npm run test:watch
 ```
 
-## 💾 Stockage des données
+## 🗄️ Base de données
 
-L'application utilise un **stockage en mémoire** pour toutes les entités. Les données sont initialisées au démarrage avec quelques exemples et sont **perdues à chaque redémarrage**.
+L'application utilise TypeORM pour gérer la base de données PostgreSQL. Les tables sont créées automatiquement au démarrage de l'application en mode développement grâce à la synchronisation automatique.
 
-### Données d'exemple disponibles au démarrage
+### Schéma de base de données
 
-- **2 clients** : Dupont Jean, Martin Sophie
-- **2 plats** : Burger Classique, Salade César
-- **3 tables** : Capacités de 2, 4 et 6 personnes
-- **1 réservation** : Client 1 à la table 3
-- **1 commande** : Table 2, Client 1, Plat 1
-
-## 🐳 Architecture Docker
-
-L'application utilise un **Dockerfile multi-stage** optimisé :
-
-### Stage 1 : Builder
-- Installation des dépendances
-- Compilation du code TypeScript
-
-### Stage 2 : Production
-- Image légère basée sur `node:20-alpine`
-- Copie uniquement des fichiers nécessaires
-- Taille optimisée de l'image finale
+- **clients** - Informations des clients (nom, allergies, majeur, végétarien)
+- **plats** - Carte des plats (nom, prix, description, allergènes, végétarien)
+- **tables** - Tables du restaurant (capacité, statut)
+- **reservations** - Réservations (client, table)
+- **commandes** - Commandes (date, client, table, plat, prix total)
 
 ## ⚠️ Dépannage
 
-### Port 3000 déjà utilisé
+### Erreur de connexion à PostgreSQL
 
-Si le port 3000 est déjà utilisé, modifiez le port dans `src/main.ts` :
-```typescript
-await app.listen(3001); // Au lieu de 3000
-```
+1. Vérifiez que PostgreSQL est bien démarré :
+   ```bash
+   # Windows
+   services.msc (chercher PostgreSQL)
 
-Ou arrêtez les autres conteneurs Docker :
-```bash
-docker ps
-docker stop <container-name>
-```
+   # Linux/Mac
+   sudo systemctl status postgresql
+   ```
 
-### Problèmes Docker
-```bash
-# Voir tous les conteneurs (même arrêtés)
-docker ps -a
+2. Vérifiez vos identifiants dans le fichier `.env`
 
-# Nettoyer les conteneurs arrêtés
-docker container prune
+3. Testez la connexion :
+   ```bash
+   psql -U postgres -d restaurant
+   ```
 
-# Nettoyer les images inutilisées
-docker image prune
+### Si Port 3000 déjà utilisé
+
+Modifiez le port dans `src/main.ts` ou utilisez une variable d'environnement :
+
+```env
+PORT=3001
 ```
 
 ## 📖 Documentation de l'API
@@ -293,17 +289,10 @@ L'application expose une documentation interactive Swagger :
 
 Vous pouvez tester tous les endpoints directement depuis l'interface Swagger.
 
-## 🚀 Déploiement
-
-L'application est prête pour être déployée sur une plateformes cloud comme :
-- Google Cloud Run
-
-Le Dockerfile inclus permet un déploiement simple et rapide.
-
 ## 📄 Licence
 
 Ce projet est sous licence MIT.
 
 ## 👨‍💻 Auteur
 
-Application développée avec NestJS comme projet d'apprentissage du développement cloud-native.
+Application développée avec NestJS, TypeORM et PostgreSQL.

@@ -1,81 +1,58 @@
 // src/clients/clients.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-// Interface pour typer nos clients
-interface Client {
-  id: number;
-  nom: string;
-  allergies: string[];
-  majeur: boolean;
-  vegetarien: boolean;
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Client } from '../entities/client.entity';
 
 @Injectable()
 export class ClientsService {
-  // Données en mémoire
-  private clients: Client[] = [
-    {
-      id: 1,
-      nom: 'Dupont Jean',
-      allergies: ['arachides', 'gluten'],
-      majeur: true,
-      vegetarien: false,
-    },
-    {
-      id: 2,
-      nom: 'Martin Sophie',
-      allergies: [],
-      majeur: true,
-      vegetarien: true,
-    },
-  ];
-  private nextId = 3;
+  constructor(
+    @InjectRepository(Client)
+    private readonly clientRepository: Repository<Client>,
+  ) {}
 
-  findAll(): Client[] {
-    return this.clients;
+  findAll(): Promise<Client[]> {
+    return this.clientRepository.find();
   }
 
-  findOne(id: number): Client {
-    const client = this.clients.find((c) => c.id === id);
+  async findOne(id: number): Promise<Client> {
+    const client = await this.clientRepository.findOne({ where: { id } });
     if (!client) throw new NotFoundException(`Client #${id} non trouvé`);
     return client;
   }
 
-  create(
+  async create(
     nom: string,
     allergies: string[],
     majeur: boolean,
     vegetarien: boolean,
-  ): Client {
-    const nouveauClient: Client = {
-      id: this.nextId++,
+  ): Promise<Client> {
+    const nouveauClient = this.clientRepository.create({
       nom,
       allergies: allergies || [],
       majeur: majeur || false,
       vegetarien: vegetarien || false,
-    };
-    this.clients.push(nouveauClient);
-    return nouveauClient;
+    });
+    return this.clientRepository.save(nouveauClient);
   }
 
-  update(
+  async update(
     id: number,
     nom?: string,
     allergies?: string[],
     majeur?: boolean,
     vegetarien?: boolean,
-  ): Client {
-    const client = this.findOne(id);
+  ): Promise<Client> {
+    const client = await this.findOne(id);
     if (nom !== undefined) client.nom = nom;
     if (allergies !== undefined) client.allergies = allergies;
     if (majeur !== undefined) client.majeur = majeur;
     if (vegetarien !== undefined) client.vegetarien = vegetarien;
-    return client;
+    return this.clientRepository.save(client);
   }
 
-  remove(id: number): void {
-    const index = this.clients.findIndex((c) => c.id === id);
-    if (index === -1) throw new NotFoundException(`Client #${id} non trouvé`);
-    this.clients.splice(index, 1);
+  async remove(id: number): Promise<void> {
+    const client = await this.findOne(id);
+    await this.clientRepository.remove(client);
   }
 }

@@ -1,88 +1,62 @@
 // src/plats/plats.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-// Interface for the dishes
-interface Plat {
-  id: number;
-  nom: string;
-  prix: number;
-  description: string;
-  allergenes: string[];
-  vegetarien: boolean;
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Plat } from '../entities/plat.entity';
 
 @Injectable()
 export class PlatsService {
-  // Hard coded data to compensate DB removed, temporary solution before mock
-  private plats: Plat[] = [
-    {
-      id: 1,
-      nom: 'Burger Classique',
-      prix: 12.5,
-      description: 'Pain, steak, salade, tomate',
-      allergenes: ['gluten'],
-      vegetarien: false,
-    },
-    {
-      id: 2,
-      nom: 'Salade César',
-      prix: 9.5,
-      description: 'Salade romaine, croûtons, parmesan',
-      allergenes: ['gluten', 'lactose'],
-      vegetarien: true,
-    },
-  ];
-  private nextId = 3; // Generate new ids
+  constructor(
+    @InjectRepository(Plat)
+    private readonly platRepository: Repository<Plat>,
+  ) {}
 
-  findAll(): Plat[] {
-    return this.plats;
+  findAll(): Promise<Plat[]> {
+    return this.platRepository.find();
   }
 
-  findOne(id: number): Plat {
-    const plat = this.plats.find((p) => p.id === id);
+  async findOne(id: number): Promise<Plat> {
+    const plat = await this.platRepository.findOne({ where: { id } });
     if (!plat) throw new NotFoundException(`Plat #${id} non trouvé`);
     return plat;
   }
 
-  create(
+  async create(
     nom: string,
     prix: number,
     description: string,
     allergenes: string[],
     vegetarien: boolean,
-  ): Plat {
-    const nouveauPlat: Plat = {
-      id: this.nextId++,
+  ): Promise<Plat> {
+    const nouveauPlat = this.platRepository.create({
       nom,
       prix,
       description,
       allergenes: allergenes || [],
       vegetarien: vegetarien || false,
-    };
-    this.plats.push(nouveauPlat);
-    return nouveauPlat;
+    });
+    return this.platRepository.save(nouveauPlat);
   }
 
-  update(
+  async update(
     id: number,
     nom?: string,
     prix?: number,
     description?: string,
     allergenes?: string[],
     vegetarien?: boolean,
-  ): Plat {
-    const plat = this.findOne(id);
+  ): Promise<Plat> {
+    const plat = await this.findOne(id);
     if (nom !== undefined) plat.nom = nom;
     if (prix !== undefined) plat.prix = prix;
     if (description !== undefined) plat.description = description;
     if (allergenes !== undefined) plat.allergenes = allergenes;
     if (vegetarien !== undefined) plat.vegetarien = vegetarien;
-    return plat;
+    return this.platRepository.save(plat);
   }
 
-  remove(id: number): void {
-    const index = this.plats.findIndex((p) => p.id === id);
-    if (index === -1) throw new NotFoundException(`Plat #${id} non trouvé`);
-    this.plats.splice(index, 1);
+  async remove(id: number): Promise<void> {
+    const plat = await this.findOne(id);
+    await this.platRepository.remove(plat);
   }
 }

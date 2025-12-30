@@ -9,22 +9,8 @@ import {
   Body,
 } from '@nestjs/common';
 import { CommandesService } from './commandes.service';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiBody,
-} from '@nestjs/swagger';
-
-// Interface locale
-interface Commande {
-  id: number;
-  tableId: number;
-  clientId: number;
-  platId: number;
-  prixTotal: number;
-}
+import { Commande } from '../entities/commande.entity';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('commandes')
 @Controller('commandes')
@@ -34,7 +20,7 @@ export class CommandesController {
   @Get()
   @ApiOperation({ summary: 'Liste toutes les commandes' })
   @ApiResponse({ status: 200, description: 'Liste des commandes' })
-  findAll(): Commande[] {
+  findAll(): Promise<Commande[]> {
     return this.commandesService.findAll();
   }
 
@@ -43,14 +29,14 @@ export class CommandesController {
   @ApiParam({ name: 'id', description: 'ID de la commande' })
   @ApiResponse({ status: 200, description: 'Commande trouvée' })
   @ApiResponse({ status: 404, description: 'Commande non trouvée' })
-  findOne(@Param('id') id: string): Commande {
+  findOne(@Param('id') id: string): Promise<Commande> {
     return this.commandesService.findOne(Number(id));
   }
 
   @Post()
   @ApiOperation({ summary: 'Crée une nouvelle commande' })
   @ApiResponse({ status: 201, description: 'Commande créée avec succès' })
-  @ApiBody({
+  @ApiBody({ 
     description: 'Données de la nouvelle commande',
     schema: {
       type: 'object',
@@ -59,9 +45,9 @@ export class CommandesController {
         clientId: { type: 'number', example: 1 },
         platId: { type: 'number', example: 1 },
         prixTotal: { type: 'number', example: 10.99 },
-      },
-    },
-  })
+      }
+   },
+   })
   create(
     @Body()
     body: {
@@ -70,7 +56,7 @@ export class CommandesController {
       platId: number;
       prixTotal?: number;
     },
-  ): Commande {
+  ): Promise<Commande> {
     return this.commandesService.create(
       body.tableId,
       body.clientId,
@@ -92,7 +78,7 @@ export class CommandesController {
       platId?: number;
       prixTotal?: number;
     },
-  ): Commande {
+  ): Promise<Commande> {
     return this.commandesService.update(
       Number(id),
       body.tableId,
@@ -106,8 +92,8 @@ export class CommandesController {
   @ApiOperation({ summary: 'Supprime une commande' })
   @ApiParam({ name: 'id', description: 'ID de la commande à supprimer' })
   @ApiResponse({ status: 200, description: 'Commande supprimée avec succès' })
-  remove(@Param('id') id: string) {
-    this.commandesService.remove(Number(id));
+  async remove(@Param('id') id: string) {
+    await this.commandesService.remove(Number(id));
     return { message: `Commande #${id} supprimée` };
   }
 }

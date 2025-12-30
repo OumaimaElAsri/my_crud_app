@@ -1,41 +1,32 @@
-# ==========================================
-# Stage 1: Builder - Compilation de l'app
-# ==========================================
-FROM node:20-alpine AS builder
-
-# Définir le répertoire de travail
+# ...new file...
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copier les fichiers de dépendances
+# Prélever package.json et lock si présent pour installer deps
 COPY package*.json ./
 
-# Installer toutes les dépendances (dev + prod)
+# Installer toutes les dépendances (incluant dev) nécessaires à la build
 RUN npm ci
 
-# Copier tout le code source
+# Copier le reste du code et builder (TypeScript -> dist)
 COPY . .
-
-# Compiler l'application TypeScript
 RUN npm run build
 
-# ==========================================
-# Stage 2: Production - Image finale légère
-# ==========================================
-FROM node:20-alpine AS production
+# Supprimer les dépendances de dev pour ne garder que la prod
+RUN npm prune --production
 
-# Définir le répertoire de travail
+# Image finale plus légère
+FROM node:18-alpine AS runner
 WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Copier uniquement les fichiers nécessaires depuis le builder
+# Copier uniquement ce qui est nécessaire au runtime
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
 
-# Exposer le port 3000
 EXPOSE 3000
 
-# Variable d'environnement pour la production
-ENV NODE_ENV=production
-
-# Commande pour démarrer l'application
-CMD ["node", "dist/main.js"]
+# Commande de démarrage (correspond à "start:prod" dans package.json)
+CMD ["node", "dist/main"]
